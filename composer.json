@@ -1,0 +1,17 @@
+{
+    "name": "warslett/tweet-sync",
+    "description": "Synchronises Tweets between twitter and a local repository",
+    "authors": [
+        {
+            "name": "William Arslett",
+            "email": "wia2@aber.ac.uk"
+        }
+    ],
+    "require": {
+
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.6.*",
+        "mockery/mockery": "^0.9.4"
+    }
+}
