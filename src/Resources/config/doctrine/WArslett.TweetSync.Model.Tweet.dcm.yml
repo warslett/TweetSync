@@ -1,0 +1,18 @@
+WArslett\TweetSync\Model\Tweet:
+  type: entity
+  repositoryClass: WArslett\TweetSync\ORM\Doctrine\TweetRepository
+  table: twitter_tweets
+  id:
+    id:
+      type: string
+  fields:
+    createdAt:
+      type: datetime
+    text:
+      type: string
+  manyToOne:
+    user:
+      targetEntity: WArslett\TweetSync\Model\TwitterUser
+      joinColumn:
+        name: user_id
+        referencedColumnName: id

@@ -12,90 +12,61 @@ class TwitterApiExchangeRemoteServiceTest extends \PHPUnit_Framework_TestCase
     {
         $api = $this->twitterAPIRemoteFileExchange();
         $api->shouldReceive('performRequest')->andReturn($this->responseWithXNoOfObjects(0));
-        $repo = new TwitterApiExchangeRemoteService($api, m::mock('\WArslett\TweetSync\Model\TweetFactory'));
+        $repo = new TwitterApiExchangeRemoteService($api);
 
         $repo->findByTwitterUser('foo');
 
         $api->shouldHaveReceived('buildOauth')->once()->with('https://api.twitter.com/1.1/statuses/user_timeline.json', 'GET');
-        $api->shouldHaveReceived('setGetfield')->once()->with('?screen_name=foo&&exclude_replies=1&include_rts=0');
+        $api->shouldHaveReceived('setGetfield')->once()->with('?screen_name=foo&exclude_replies=1&include_rts=0');
         $api->shouldHaveReceived('performRequest')->once();
-    }
-
-    public function testFindByTwitterID_DoesNotCallTweetFactory_FromUserWith0Tweets()
-    {
-        $api = $this->twitterAPIRemoteFileExchange();
-        $factory = m::mock('\WArslett\TweetSync\Model\TweetFactory');
-        $repo = new TwitterApiExchangeRemoteService($api, $factory);
-        $api->shouldReceive('performRequest')->once()->andReturn($this->responseWithXNoOfObjects(0));
-
-        $repo->findByTwitterUser('foo');
-
-        $factory->shouldNotHaveReceived('buildFromStdObj');
     }
 
     public function testFindByTwitterID_ReturnsEmptyArray_FromUserWith0Tweets()
     {
         $api = $this->twitterAPIRemoteFileExchange();
-        $repo = new TwitterApiExchangeRemoteService($api, m::mock('\WArslett\TweetSync\Model\TweetFactory'));
+        $repo = new TwitterApiExchangeRemoteService($api);
         $api->shouldReceive('performRequest')->once()->andReturn($this->responseWithXNoOfObjects(0));
 
-        $tweets = $repo->findByTwitterUser('foo');
+        $objects = $repo->findByTwitterUser('foo');
 
-        $this->assertEquals([], $tweets);
+        $this->assertEquals([], $objects);
     }
 
-    public function testFindByTwitterID_CallsTweetFactoryOnce_FromUserWith1Tweets()
+    public function testFindByTwitterID_ReturnsArrayOfOneObject_FromUserWith1Tweets()
     {
         $api = $this->twitterAPIRemoteFileExchange();
-        $tweet = m::mock('\WArslett\TweetSync\Model\Tweet');
-        $factory = m::mock('\WArslett\TweetSync\Model\TweetFactory');
-        $factory->shouldReceive('buildFromStdObj')->andReturn($tweet);
-        $repo = new TwitterApiExchangeRemoteService($api, $factory);
-        $api->shouldReceive('performRequest')->once()->andReturn($this->responseWithXNoOfObjects(1));
+        $repo = new TwitterApiExchangeRemoteService($api);
+        $response = $this->responseWithXNoOfObjects(1);
+        $api->shouldReceive('performRequest')->once()->andReturn($response);
 
-        $tweets = $repo->findByTwitterUser('foo');
+        $objects = $repo->findByTwitterUser('foo');
 
-        $factory->shouldHaveReceived('buildFromStdObj')->once()->with(m::type('\stdClass'));
+        $this->assertEquals(json_decode($response), $objects);
     }
 
-    public function testFindByTwitterID_ReturnsArrayOf1Tweet_FromUserWith1Tweets()
+    public function testFindByTwitterID_ReturnsArrayOfTwoObjects_FromUserWith2Tweets()
     {
         $api = $this->twitterAPIRemoteFileExchange();
-        $tweet = m::mock('\WArslett\TweetSync\Model\Tweet');
-        $factory = m::mock('\WArslett\TweetSync\Model\TweetFactory');
-        $factory->shouldReceive('buildFromStdObj')->andReturn($tweet);
-        $repo = new TwitterApiExchangeRemoteService($api, $factory);
-        $api->shouldReceive('performRequest')->once()->andReturn($this->responseWithXNoOfObjects(1));
+        $repo = new TwitterApiExchangeRemoteService($api);
+        $response = $this->responseWithXNoOfObjects(2);
+        $api->shouldReceive('performRequest')->once()->andReturn($response);
 
-        $tweets = $repo->findByTwitterUser('foo');
+        $objects = $repo->findByTwitterUser('foo');
 
-        $this->assertEquals([$tweet], $tweets);
+        $this->assertEquals(json_decode($response), $objects);
     }
 
-    public function testFindByTwitterID_CallsTweetFactoryTwice_FromUserWith2Tweets()
+    public function testFindTwitterUser_CallsAPIWithUsername_WhenCalledWithUsername()
     {
         $api = $this->twitterAPIRemoteFileExchange();
-        $factory = m::mock('\WArslett\TweetSync\Model\TweetFactory');
-        $factory->shouldReceive('buildFromStdObj');
-        $repo = new TwitterApiExchangeRemoteService($api, $factory);
-        $api->shouldReceive('performRequest')->once()->andReturn($this->responseWithXNoOfObjects(2));
+        $response = '{}';
+        $api->shouldReceive('performRequest')->andReturn($response);
+        $repo = new TwitterApiExchangeRemoteService($api);
+        $userObj = 'foo';
 
-        $repo->findByTwitterUser('foo');
+        $userObj = $repo->findTwitterUser($userObj);
 
-        $factory->shouldHaveReceived('buildFromStdObj')->twice();
-    }
-
-    public function testFindByTwitterID_ReturnsArraySize2_FromUserWith2Tweets()
-    {
-        $api = $this->twitterAPIRemoteFileExchange();
-        $factory = m::mock('\WArslett\TweetSync\Model\TweetFactory');
-        $factory->shouldReceive('buildFromStdObj');
-        $repo = new TwitterApiExchangeRemoteService($api, $factory);
-        $api->shouldReceive('performRequest')->once()->andReturn($this->responseWithXNoOfObjects(2));
-
-        $tweets = $repo->findByTwitterUser('foo');
-
-        $this->assertEquals(2, count($tweets));
+        $this->assertEquals($response, json_encode($userObj));
     }
 
     private function twitterAPIRemoteFileExchange()
@@ -109,7 +80,7 @@ class TwitterApiExchangeRemoteServiceTest extends \PHPUnit_Framework_TestCase
     private function responseWithXNoOfObjects($x)
     {
         $collection = array();
-        for($i = 0; $i<$x; $i++) {
+        while (count($collection)<$x) {
             $collection[] = new \stdClass();
         }
         return json_encode($collection);

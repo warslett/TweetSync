@@ -2,8 +2,6 @@
 
 namespace WArslett\TweetSync\Remote;
 
-use WArslett\TweetSync\Model\Tweet;
-
 /**
  * Interface RemoteService
  * @package WArslett\TweetSync
@@ -12,7 +10,13 @@ interface RemoteService
 {
     /**
      * @param string $username
-     * @return Tweet[]
+     * @return \stdClass[]
      */
     public function findByTwitterUser($username);
+
+    /**
+     * @param $username
+     * @return \stdClass
+     */
+    public function findTwitterUser($username);
 }

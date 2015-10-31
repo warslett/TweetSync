@@ -6,22 +6,26 @@ class TweetFactory
 {
 
     /**
-     * @var TwitterUserResolver
+     * @var TwitterUserRepository
      */
-    private $userResolver;
+    private $userRepository;
 
-    public function __construct(TwitterUserResolver $userResolver)
+    public function __construct(TwitterUserRepository $userRepository)
     {
-        $this->userResolver = $userResolver;
+        $this->userRepository = $userRepository;
     }
 
-    public function buildFromStdObj($object)
+    public function buildFromStdObj(\stdClass $object)
     {
-        $tweet = new Tweet();
-        $tweet->setCreatedAt(new \DateTimeImmutable($object->created_at));
-        $tweet->setId($object->id_str);
-        $tweet->setText($object->text);
-        $tweet->setUser($this->userResolver->resolveFromStdObj($object->user));
+        $tweet = new Tweet($object->id_str);
+        $this->patchFromStdObj($tweet, $object);
         return $tweet;
+    }
+
+    public function patchFromStdObj(Tweet $tweet, \stdClass $object)
+    {
+        $tweet->setCreatedAt(new \DateTimeImmutable($object->created_at));
+        $tweet->setText($object->text);
+        $tweet->setUser($this->userRepository->find($object->user->id_str));
     }
 }

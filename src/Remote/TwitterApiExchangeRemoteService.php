@@ -18,34 +18,35 @@ class TwitterApiExchangeRemoteService implements RemoteService
     private $tw;
 
     /**
-     * @var TweetFactory
-     */
-    private $factory;
-
-    /**
      * @param TwitterAPIExchange $tw
-     * @param TweetFactory $f
      */
-    public function __construct(TwitterAPIExchange $tw, TweetFactory $f) {
+    public function __construct(TwitterAPIExchange $tw) {
         $this->tw = $tw;
-        $this->factory = $f;
     }
 
     /**
      * @param string $username
-     * @return Tweet[]
+     * @return \stdClass[]
      */
     public function findByTwitterUser($username)
     {
-        $tweets = array();
-        $response = json_decode($this->tw
+        $response = $this->tw
+            ->setGetfield('?screen_name=' . $username . '&exclude_replies=1&include_rts=0')
             ->buildOauth('https://api.twitter.com/1.1/statuses/user_timeline.json', 'GET')
-            ->setGetfield('?screen_name=' . $username . '&&exclude_replies=1&include_rts=0')
-            ->performRequest()
-        );
-        foreach($response as $object) {
-            $tweets[] = $this->factory->buildFromStdObj($object);
-        }
-        return $tweets;
+            ->performRequest();
+        return json_decode($response);
+    }
+
+    /**
+     * @param $username
+     * @return \stdClass
+     */
+    public function findTwitterUser($username)
+    {
+        $response = $this->tw
+            ->setGetfield('?screen_name=' . $username)
+            ->buildOauth('https://api.twitter.com/1.1/users/show.json', 'GET')
+            ->performRequest();
+        return json_decode($response);
     }
 }

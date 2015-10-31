@@ -1,0 +1,7 @@
+default:
+  autoload:
+    '': %paths.base%/behaviour/bootstrap
+  suites:
+    default:
+      paths:
+        - %paths.base%/behaviour

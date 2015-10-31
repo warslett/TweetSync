@@ -9,7 +9,7 @@ class TweetFactoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testBuildFromStdObj_ReturnsTypeTweet()
     {
-        $factory = new TweetFactory($this->userResolver());
+        $factory = new TweetFactory($this->userRepository());
         $stdObj = $this->tweetResponseObj();
 
         $tweet = $factory->buildFromStdObj($stdObj);
@@ -19,18 +19,18 @@ class TweetFactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildFromStdObj_CreatedAt()
     {
-        $factory = new TweetFactory($this->userResolver());
+        $factory = new TweetFactory($this->userRepository());
         $stdObj = $this->tweetResponseObj();
         $stdObj->created_at = 'Sat Oct 24 14:06:39 +0000 2015';
 
         $tweet = $factory->buildFromStdObj($stdObj);
 
-        $this->assertEquals($stdObj->created_at, $tweet->getCreatedAt()->format('D M j G:i:s O Y'));
+        $this->assertEquals($stdObj->created_at, $tweet->getCreatedAt()->format('D M d G:i:s O Y'));
     }
 
     public function testBuildFromStdObj_ID()
     {
-        $factory = new TweetFactory($this->userResolver());
+        $factory = new TweetFactory($this->userRepository());
         $stdObj = $this->tweetResponseObj();
         $stdObj->id_str = "657921145627394048";
 
@@ -41,7 +41,7 @@ class TweetFactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildFromStdObj_text()
     {
-        $factory = new TweetFactory($this->userResolver());
+        $factory = new TweetFactory($this->userRepository());
         $stdObj = $this->tweetResponseObj();
         $stdObj->text = "The rain in spain falls mainly on the plain";
 
@@ -52,21 +52,70 @@ class TweetFactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildFromStdObj_User()
     {
-        $resolver = $this->userResolver();
+        $repository = m::mock('\WArslett\TweetSync\Model\TwitterUserRepository');
         $twitterUser = m::mock('\WArslett\TweetSync\Model\TwitterUser');
-        $userResponseObj = new \stdClass();
-        $resolver
-            ->shouldReceive('resolveFromStdObj')
-            ->with($userResponseObj)
-            ->andReturn($twitterUser);
-        $factory = new TweetFactory($resolver);
         $stdObj = $this->tweetResponseObj();
-        $stdObj->user = $userResponseObj;
+        $stdObj->user->id_str = '5402612';
+        $repository
+            ->shouldReceive('find')
+            ->with($stdObj->user->id_str)
+            ->andReturn($twitterUser);
+        $factory = new TweetFactory($repository);
 
         $tweet = $factory->buildFromStdObj($stdObj);
 
-        $resolver->shouldHaveReceived('resolveFromStdObj')->with($userResponseObj)->once();
+        $repository->shouldHaveReceived('find')->with($stdObj->user->id_str)->once();
         $this->assertEquals($twitterUser, $tweet->getUser());
+    }
+
+    public function testPatchFromStdObj_CallsSetCreatedAt()
+    {
+        $tweet = $this->tweet();
+        $factory = new TweetFactory($this->userRepository());
+        $stdObj = $this->tweetResponseObj();
+        $stdObj->created_at = 'Sat Oct 24 14:06:39 +0000 2015';
+
+        $factory->patchFromStdObj($tweet, $stdObj);
+
+        $tweet->shouldHaveReceived('setCreatedAt')->with(
+            m::on(function (\DateTimeImmutable $arg) use ($stdObj) {
+                if ($stdObj->created_at == $arg->format('D M d G:i:s O Y')) {
+                    return true;
+                }
+                return false;
+            })
+        )->once();
+    }
+
+    public function testPatchFromStdObj_CallsSetText()
+    {
+        $tweet = $this->tweet();
+        $factory = new TweetFactory($this->userRepository());
+        $stdObj = $this->tweetResponseObj();
+        $stdObj->text = "The rain in spain falls mainly on the plain";
+
+        $factory->patchFromStdObj($tweet, $stdObj);
+
+        $tweet->shouldHaveReceived('setText')->with($stdObj->text)->once();
+    }
+
+    public function testPatchFromStdObj_User()
+    {
+        $tweet = $this->tweet();
+        $repository = m::mock('\WArslett\TweetSync\Model\TwitterUserRepository');
+        $twitterUser = m::mock('\WArslett\TweetSync\Model\TwitterUser');
+        $stdObj = $this->tweetResponseObj();
+        $stdObj->user->id_str = '5402612';
+        $repository
+            ->shouldReceive('find')
+            ->with($stdObj->user->id_str)
+            ->andReturn($twitterUser);
+        $factory = new TweetFactory($repository);
+
+        $factory->patchFromStdObj($tweet, $stdObj);
+
+        $repository->shouldHaveReceived('find')->with($stdObj->user->id_str)->once();
+        $tweet->shouldHaveReceived('setUser')->with($twitterUser)->once();
     }
 
     private function tweetResponseObj()
@@ -75,16 +124,31 @@ class TweetFactoryTest extends \PHPUnit_Framework_TestCase
         $obj->created_at = null;
         $obj->id_str = null;
         $obj->text = null;
-        $obj->user = null;
+        $userObj = new \stdClass();
+        $userObj->id_str = null;
+        $obj->user = $userObj;
         return $obj;
     }
 
-    private function userResolver()
+    private function userRepository()
     {
-        $mock = m::mock('\WArslett\TweetSync\Model\TwitterUserResolver');
-        $mock->shouldReceive('resolveFromStdObj')->andReturn(
+        $mock = m::mock('\WArslett\TweetSync\Model\TwitterUserRepository');
+        $mock->shouldReceive('find')->andReturn(
             m::mock('\WArslett\TweetSync\Model\TwitterUser')
         );
+        return $mock;
+    }
+
+    /**
+     * @return m\MockInterface
+     */
+    private function tweet()
+    {
+        $mock = m::mock('\WArslett\TweetSync\Model\Tweet');
+        $mock->shouldReceive('setCreatedAt');
+        $mock->shouldReceive('setId');
+        $mock->shouldReceive('setText');
+        $mock->shouldReceive('setUser');
         return $mock;
     }
 }

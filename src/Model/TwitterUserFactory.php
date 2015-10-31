@@ -16,9 +16,13 @@ class TwitterUserFactory
      */
     public function buildFromStdObj(\stdClass $obj)
     {
-        $twitterUser = new TwitterUser();
-        $twitterUser->setId($obj->id_str);
-        $twitterUser->setScreenName($obj->screen_name);
+        $twitterUser = new TwitterUser($obj->id_str);
+        $this->patchFromStdObj($twitterUser, $obj);
         return $twitterUser;
+    }
+
+    public function patchFromStdObj(TwitterUser $twitterUser, \stdClass $obj)
+    {
+        $twitterUser->setScreenName($obj->screen_name);
     }
 }
