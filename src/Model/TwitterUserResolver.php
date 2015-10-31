@@ -1,9 +1,6 @@
 <?php
 
 namespace WArslett\TweetSync\Model;
-use WArslett\TweetSync\Model\TwitterUser;
-use WArslett\TweetSync\Model\TwitterUserFactory;
-use WArslett\TweetSync\Model\TwitterUserRepository;
 
 
 /**

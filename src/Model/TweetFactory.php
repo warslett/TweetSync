@@ -2,8 +2,6 @@
 
 namespace WArslett\TweetSync\Model;
 
-use WArslett\TweetSync\Model\TwitterUserResolver;
-
 class TweetFactory
 {
 
