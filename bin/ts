@@ -1,0 +1,19 @@
+#!/usr/bin/php
+<?php
+
+require __DIR__.'/../vendor/autoload.php';
+
+use WArslett\TweetSync\ConsoleRunner;
+
+ConsoleRunner::configureFromArray([
+    'api.config' => [
+        'oauth_access_token' => '2572576537-Rza7vEqPuqDHwS5BSgIqWp17c4rx6lw9tAD3poz',
+        'oauth_access_token_secret' => 'lXreO9NAp25QwEP3VP0gghJurYm4bP42SbSigldAIhD4X',
+        'consumer_key' => 'ScjpiHWGrdpdCPCHpkm7XriIP',
+        'consumer_secret' => '2JFiYBpnv0x38fYkZ8gL1eviPFEjsTejPTNMH0NohxEb5habkV'
+    ],
+    'database.config' => [
+        'driver'   => 'pdo_sqlite',
+        'path'     => __DIR__ . "/../behaviour/tmp/test.sqlite"
+    ]
+])->run();
