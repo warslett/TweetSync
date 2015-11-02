@@ -39,9 +39,9 @@ class TweetPersistenceService implements TweetPersistenceServiceInterface
     }
 
     /**
-     * @param $tweet
+     * @param Tweet $tweet
      */
-    public function ensureTweetUpdated($tweet)
+    public function ensureTweetUpdated(Tweet $tweet)
     {
         $this->em->flush($tweet);
     }

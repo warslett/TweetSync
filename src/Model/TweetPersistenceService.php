@@ -15,9 +15,9 @@ interface TweetPersistenceService
     public function persistTweet(Tweet $tweet);
 
     /**
-     * @param $tweet
+     * @param Tweet $tweet
      */
-    public function ensureTweetUpdated($tweet);
+    public function ensureTweetUpdated(Tweet $tweet);
 
     /**
      * @param TwitterUser $twitterUser
