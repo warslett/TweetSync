@@ -1,7 +1,7 @@
 WArslett\TweetSync\Model\TwitterUser:
   type: entity
   repositoryClass: WArslett\TweetSync\ORM\Doctrine\TwitterUserRepository
-  table: twitter_users
+  table: twitter__users
   id:
     id:
       type: string

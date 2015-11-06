@@ -46,3 +46,7 @@ services:
   twitter_sync_command:
     class: \WArslett\TweetSync\Console\SyncUserCommand
     arguments: ["@twitter_sync"]
+
+  twitter_init_command:
+    class: \WArslett\TweetSync\Console\InitCommand
+    arguments: ["@doctrine.orm.entity_manager"]

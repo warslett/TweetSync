@@ -9,6 +9,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
+/**
+ * Class ConsoleRunner
+ * @package WArslett\TweetSync
+ */
 class ConsoleRunner
 {
 
@@ -29,23 +33,14 @@ class ConsoleRunner
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/Resources/config/'));
         $loader->load('services.yml');
 
-        /**
-         * @var \WArslett\TweetSync\Console\SyncUserCommand $command
-         */
-        $command = $container->get('twitter_sync_command');
-
-        $this->application->add($command);
+        $this->application->add($container->get('twitter_sync_command'));
+        $this->application->add($container->get('twitter_init_command'));
     }
 
-    public static function configureFromYamlFile($loc)
-    {
-        $container = new ContainerBuilder();
-        $loader = new YamlFileLoader($container, new FileLocator());
-        $loader->load(__DIR__ . '/Resources/config/services.yml');
-        $loader->load($loc);
-        return new static($container);
-    }
-
+    /**
+     * @param $array
+     * @return static
+     */
     public static function configureFromArray($array)
     {
         $container = new ContainerBuilder();
