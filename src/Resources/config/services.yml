@@ -5,48 +5,51 @@ services:
 
   twitter_api_exchange:
     class: \TwitterAPIExchange
-    arguments: ["%api.config%"]
+    arguments: [%api.config%]
 
   twitter_remote_service:
     class: \WArslett\TweetSync\Remote\TwitterApiExchangeRemoteService
-    arguments: ["@twitter_api_exchange"]
+    arguments: [@twitter_api_exchange]
 
   doctrine.orm.config:
     class: \Doctrine\ORM\Configuration
-    factory: [\Doctrine\ORM\Tools\Setup, createYAMLMetadataConfiguration]
+    factory_class: \Doctrine\ORM\Tools\Setup
+    factory_method: createYAMLMetadataConfiguration
     arguments: [["%app.root%/Resources/config/doctrine"]]
 
   doctrine.orm.entity_manager:
     class: \Doctrine\ORM\EntityManager
-    factory: [\Doctrine\ORM\EntityManager, create]
+    factory_class: \Doctrine\ORM\EntityManager
+    factory_method: create
     arguments:
-      - "%database.config%"
-      - "@doctrine.orm.config"
+      - %database.config%
+      - @doctrine.orm.config
 
   twitter_persistence_service:
     class: \WArslett\TweetSync\ORM\Doctrine\TweetPersistenceService
-    arguments: ["@doctrine.orm.entity_manager"]
+    arguments: [@doctrine.orm.entity_manager]
 
   twitter_user_repository:
     class: \WArslett\TweetSync\Model\TwitterUserRepository
-    factory: ["@twitter_persistence_service", getTwitterUserRepository]
+    factory_service: twitter_persistence_service
+    factory_method:  getTwitterUserRepository
 
   twitter_tweet_factory:
     class: \WArslett\TweetSync\Model\TweetFactory
-    arguments: ["@twitter_user_repository"]
+    arguments: [@twitter_user_repository]
 
   twitter_sync:
     class: \WArslett\TweetSync\Remote\TweetSync
     arguments:
-      - "@twitter_remote_service"
-      - "@twitter_persistence_service"
-      - "@twitter_tweet_factory"
-      - "@twitter_user_factory"
+      - @twitter_remote_service
+      - @twitter_persistence_service
+      - @twitter_tweet_factory
+      - @twitter_user_factory
 
   twitter_sync_command:
     class: \WArslett\TweetSync\Console\SyncUserCommand
-    arguments: ["@twitter_sync"]
+    arguments: [@twitter_sync]
 
   twitter_init_command:
     class: \WArslett\TweetSync\Console\InitCommand
-    arguments: ["@doctrine.orm.entity_manager"]
+    arguments: [@doctrine.orm.entity_manager]
