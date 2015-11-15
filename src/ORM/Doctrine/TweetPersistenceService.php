@@ -4,6 +4,8 @@ namespace WArslett\TweetSync\ORM\Doctrine;
 
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\ORM\Tools\Setup;
 use WArslett\TweetSync\Model\Tweet;
 use WArslett\TweetSync\Model\TweetPersistenceService as TweetPersistenceServiceInterface;
 use WArslett\TweetSync\Model\TwitterUser;
@@ -77,5 +79,21 @@ class TweetPersistenceService implements TweetPersistenceServiceInterface
     public function getTweetRepository()
     {
         return $this->em->getRepository('WArslett\TweetSync\Model\Tweet');
+    }
+
+    /**
+     * @param $dbParams
+     * @return TweetPersistenceService
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\Tools\ToolsException
+     */
+    public static function create($dbParams)
+    {
+        $paths = array(__DIR__ . "/../../Resources/config/doctrine");
+
+        $config = Setup::createYAMLMetadataConfiguration($paths);
+        $entityManager = EntityManager::create($dbParams, $config);
+
+        return new self($entityManager);
     }
 }

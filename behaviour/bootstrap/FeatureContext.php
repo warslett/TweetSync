@@ -254,4 +254,39 @@ class FeatureContext implements Context
             ->with('https://api.twitter.com/1.1/statuses/user_timeline.json', 'GET')
             ->andReturn($userStatusesAPI);
     }
+
+    /**
+     * @When I find by the username :username I get back the following tweets:
+     */
+    public function iFindByTheUsernameIGetBackTheFollowingTweets($username, \Behat\Gherkin\Node\TableNode $table)
+    {
+
+        $tweets = $this->tweetPersistenceService->getTweetRepository()->findByUsername($username);
+        $expected = $table->getHash();
+
+        a::assertEquals(count($expected), count($tweets));
+
+        $assocTweets = array();
+        foreach ($tweets as $tweet) {
+            $assocTweets[$tweet->getId()] = $tweet;
+        }
+
+        foreach ($expected as $row) {
+            $tweet = $assocTweets[$row['id']];
+            a::assertNotNull($tweet, "No tweet with id " . $row['id']);
+            a::assertEquals(
+                $row['created_at'],
+                $tweet->getCreatedAt()->format('D M d G:i:s O Y'),
+                "Tweet "
+                . $row['id']
+                . " has the wrong date "
+                . "\nExpected:"
+                . $row['created_at']
+                . "\nActual:  "
+                . $tweet->getCreatedAt()->format('D M d G:i:s O Y')
+            );
+            a::assertEquals($row['text'], $tweet->getText(), "Tweet " . $row['id'] . " has the wrong text");
+            a::assertEquals($row['user'], $tweet->getUser()->getId(), "Tweet " . $row['id'] . " has the wrong user");
+        }
+    }
 }

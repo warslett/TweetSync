@@ -14,4 +14,10 @@ interface TweetRepository
      * @return Tweet
      */
     public function find($id);
+
+    /**
+     * @param $username
+     * @return Tweet[]
+     */
+    public function findByUsername($username);
 }
