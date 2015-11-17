@@ -3,13 +3,17 @@ services:
   twitter_user_factory:
     class: \WArslett\TweetSync\Model\TwitterUserFactory
 
-  twitter_api_exchange:
-    class: \TwitterAPIExchange
-    arguments: [%api.config%]
+  twitter_oauth:
+    class: \Abraham\TwitterOAuth\TwitterOAuth
+    arguments:
+      - %consumer_key%
+      - %consumer_secret%
+      - %oauth_access_token%
+      - %oauth_access_token_secret%
 
   twitter_remote_service:
-    class: \WArslett\TweetSync\Remote\TwitterApiExchangeRemoteService
-    arguments: [@twitter_api_exchange]
+    class: \WArslett\TweetSync\Remote\TwitterOAuthRemoteService
+    arguments: [@twitter_oauth]
 
   doctrine.orm.config:
     class: \Doctrine\ORM\Configuration

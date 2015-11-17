@@ -21,14 +21,10 @@ require __DIR__.'/vendor/autoload.php';
 use WArslett\TweetSync\ConsoleRunner;
 
 ConsoleRunner::configureFromArray([
-    'api.config' => [
-        // You need your own access tokens for any application or website that interacts with twitter.
-        // See: https://apps.twitter.com/
-        'oauth_access_token' => 'YOUR OAUTH ACCESS TOKEN',
-        'oauth_access_token_secret' => 'YOUR OAUTH ACCESS TOKEN SECRET',
-        'consumer_key' => 'YOUR CONSUMER KEY',
-        'consumer_secret' => 'YOUR CONSUMER SECRET'
-    ],
+    'consumer_key' => 'YOUR CONSUMER KEY',
+    'consumer_secret' => 'YOUR CONSUMER SECRET',
+    'oauth_access_token' => 'YOUR OAUTH ACCESS TOKEN',
+    'oauth_access_token_secret' => 'YOUR OAUTH ACCESS TOKEN SECRET',
     'database.config' => [
         // Replace with your own db params
         // See: http://doctrine-orm.readthedocs.org/projects/doctrine-dbal/en/latest/reference/configuration.html

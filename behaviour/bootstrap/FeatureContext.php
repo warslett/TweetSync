@@ -16,6 +16,7 @@ use Mockery as m;
 use PHPUnit_Framework_Assert as a;
 use WArslett\TweetSync\Remote\TweetSync;
 use WArslett\TweetSync\Remote\TwitterApiExchangeRemoteService;
+use WArslett\TweetSync\Remote\TwitterOAuthRemoteService;
 
 /**
  * Class FeatureContext
@@ -76,9 +77,8 @@ class FeatureContext implements Context
      */
     public function thatIHaveADummyTwitterAPI()
     {
-        $this->api = m::mock('\TwitterAPIExchange');
-        $this->api->shouldReceive('setGetfield')->withAnyArgs()->andReturnSelf();
-        $this->remote = new TwitterApiExchangeRemoteService($this->api);
+        $this->api = m::mock('\Abraham\TwitterOAuth\TwitterOAuth');
+        $this->remote = new TwitterOAuthRemoteService($this->api);
     }
 
     /**
@@ -217,7 +217,7 @@ class FeatureContext implements Context
             $tweetObj->user->id_str = $userId;
             $objects[] = $tweetObj;
         }
-        return json_encode($objects);
+        return $objects;
     }
 
     /**
@@ -239,20 +239,25 @@ class FeatureContext implements Context
      */
     private function apiShouldRespondToScreenNameWithResponse($userId, $screenName, $response)
     {
-        $userShowAPI = m::mock('\TwitterAPIExchange');
-        $userShowAPI->shouldReceive('performRequest')->andReturn(
-            json_encode($this->buildUserObj($userId, $screenName))
+        $resource = 'users/show';
+        $args = array(
+            'screen_name' => 'foo'
         );
-        $userStatusesAPI = m::mock('\TwitterAPIExchange');
-        $userStatusesAPI->shouldReceive('performRequest')->andReturn($response);
         $this->api
-            ->shouldReceive('buildOauth')
-            ->with("https://api.twitter.com/1.1/users/show.json", 'GET')
-            ->andReturn($userShowAPI);
+            ->shouldReceive('get')
+            ->with($resource, $args)
+            ->andReturn($this->buildUserObj($userId, $screenName));
+
+        $resource = 'statuses/user_timeline';
+        $args = array(
+            'screen_name' => $screenName,
+            'exclude_replies' => 1,
+            'include_rts' => 0
+        );
         $this->api
-            ->shouldReceive('buildOauth')
-            ->with('https://api.twitter.com/1.1/statuses/user_timeline.json', 'GET')
-            ->andReturn($userStatusesAPI);
+            ->shouldReceive('get')
+            ->with($resource, $args)
+            ->andReturn($response);
     }
 
     /**
